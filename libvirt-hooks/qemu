@@ -1,0 +1,171 @@
+#!/usr/bin/env bash
+
+# Core Configuration - Use https://bitsum.com/tools/cpu-affinity-calculator/ to calculate masks
+TOTAL_CORES='0-11'               # All CPUs
+TOTAL_CORES_MASK='FFF'           # All CPUs Mask
+HOST_CORES='0-1,6-7'             # Cores to reserve for host
+HOST_CORES_MASK='C3'             # CPU mask for host cores
+VIRT_CORES='2-5,8-11'            # Cores to reserve for VM
+VIRT_CORES_MASK='F3C'            # CPU mask for VM cores
+
+# Log a message in dmesg
+log() {
+  local msg="$*"
+  printf "libvirt-hook-qemu: %s\n" "${msg}" >/dev/kmsg
+}
+
+# Split a string based on delimiter
+# Usage: split foo,bar ,
+split() {
+  local string="$1"
+  local delimiter="$2"
+  IFS=$'\n' read -d "" -ra arr <<< "${1//$2/$'\n'}"
+  printf '%s\n' "${arr[@]}"
+}
+
+# List all CPUs individually given a range
+# Usage: listcpus 2-5,8-11
+listcpus() {
+  local range="$1"
+  local cpus=()
+  groups=$(split ${range} ,)
+  for g in ${groups[@]}; do
+    begin=$(echo ${g} | cut -d- -f1)
+    end=$(echo ${g} | cut -d- -f2)
+    cpus+=($(seq ${begin} ${end}))
+  done
+  printf '%s\n' "${cpus[@]}"
+}
+
+# Configure cpusets and isolate cores
+set_cpu() {
+  log "Creating system cpuset for host cores ${HOST_CORES}"
+  cset set -c ${HOST_CORES} -s system
+
+  log "Moving all threads (including kernel) to host cpuset"
+  cset proc -m -f root -t system --force
+  cset proc -k -f root -t system --force
+
+  log "Setting workqueue affinities"
+  echo ${HOST_CORES_MASK} >/sys/bus/workqueue/devices/writeback/cpumask
+  echo ${HOST_CORES_MASK} >/sys/devices/virtual/workqueue/cpumask
+  echo 0 > /sys/bus/workqueue/devices/writeback/numa
+
+  # Manually move any processes that refused to move from cset proc
+  # Realistically the only one affected by this is kthreadd
+  cset proc --list --set root | awk 'NR==4,NR==-1 {print $2}' | while read line; do
+    taskset -pc ${HOST_CORES} $line
+  done
+
+  # Take all VM CPUs offline and bring back online after.
+  # Reduces jitter due to timers
+  # https://www.kernel.org/doc/Documentation/kernel-per-CPU-kthreads.txt
+  log "Taking VM CPUs ${VIRT_CORES} offline and back online"
+  cpus=$(listcpus ${VIRT_CORES})
+  for n in ${cpus}; do
+    echo 0 >/sys/devices/system/cpu/cpu${n}/online
+  done
+  sleep 1
+  for n in ${cpus}; do
+    echo 1 >/sys/devices/system/cpu/cpu${n}/online
+  done
+
+  # If the libvirt slice exists from a prior VM boot,
+  # delete it as it will need to be recreated after CPU hotplug
+  cset set -d machine.slice
+}
+
+# Delete system cpuset and undo isolation
+unset_cpu() {
+  log "Releasing CPUs ${VIRT_CORES} from VM: ${VM_NAME}"
+  cset set -d system
+  echo ${TOTAL_CORES_MASK} >/sys/bus/workqueue/devices/writeback/cpumask
+  echo ${TOTAL_CORES_MASK} >/sys/devices/virtual/workqueue/cpumask
+  echo 1 > /sys/bus/workqueue/devices/writeback/numa
+}
+
+# Configure the VFIO interrupts to run on the guest cores
+set_irq_affinity() {
+  local irqs=($(grep vfio /proc/interrupts | cut -d ":" -f1))
+  for i in ${irqs[@]}; do
+    log "Setting affinity for IRQ ${i}"
+    echo ${VIRT_CORES_MASK} >/proc/irq/${i}/smp_affinity
+  done
+}
+
+# Configure hugepages
+set_hugepages() {
+  cd $(dirname "$0")
+  local hugepages_needed=$(($(./vm-mem-requirements ${VM_NAME}) / HUGEPAGES_SIZE))
+  local hugepages_total=$((${HUGEPAGES_ALLOCATED} + ${hugepages_needed}))
+
+  log "Setting hugepages to ${hugepages_total}"
+  sysctl vm.nr_hugepages=${hugepages_total}
+
+  # Disable transparent hugepages
+  echo never >/sys/kernel/mm/transparent_hugepage/enabled
+
+}
+
+# Revert hugepages
+unset_hugepages() {
+  local hugepages_needed=$(($(./vm-mem-requirements ${VM_NAME}) / HUGEPAGES_SIZE))
+  local hugepages_total=$(($HUGEPAGES_ALLOCATED - $VM_HUGEPAGES_NEED))
+  hugepages_total=$((${hugepages_total}<0?0:${hugepages_total}))
+
+  log "Restoring hugepages to ${hugepages_total}"
+  sysctl vm.nr_hugepages=${hugepages_total}
+
+  # Restore transparent hugepages
+  echo always >/sys/kernel/mm/transparent_hugepage/enabled
+}
+
+# Load hugepages details
+HUGEPAGES_SIZE=$(grep Hugepagesize /proc/meminfo | awk {'print $2'})
+HUGEPAGES_SIZE=$((HUGEPAGES_SIZE * 1024))
+HUGEPAGES_ALLOCATED=$(sysctl vm.nr_hugepages | awk {'print $3'})
+
+# Load libvirt args
+VM_NAME=$1
+VM_ACTION=$2
+
+case "$VM_ACTION" in
+"prepare")
+  # Memory preparation
+  sync
+  echo 3 >/proc/sys/vm/drop_caches
+  echo 1 >/proc/sys/vm/compact_memory
+
+  # Set hugepages
+  set_hugepages
+
+  # Create cpusets and isolate cores
+  set_cpu
+
+  # Force P-states to P0
+  echo performance | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+
+  # Increase stat interval
+  echo 300 >/proc/sys/vm/stat_interval
+
+  # Disable watchdog
+  echo 0 >/proc/sys/kernel/watchdog
+  ;;
+"started")
+  # Set IRQ affinity for VFIO interrupts
+  set_irq_affinity
+  ;;
+"release")
+  # Restore cpusets
+  unset_cpu
+
+  # Restore hugepages
+  unset_hugepages
+
+  # Restore stat interval
+  echo 1 >/proc/sys/vm/stat_interval
+
+  # Restore watchdog
+  echo 1 >/proc/sys/kernel/watchdog
+  ;;
+esac
