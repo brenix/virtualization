@@ -109,12 +109,15 @@ set_hugepages() {
 
 # Revert hugepages
 unset_hugepages() {
-  local hugepages_needed=$(($(./vm-mem-requirements ${VM_NAME}) / HUGEPAGES_SIZE))
-  local hugepages_total=$(($HUGEPAGES_ALLOCATED - $VM_HUGEPAGES_NEED))
-  hugepages_total=$((${hugepages_total}<0?0:${hugepages_total}))
+  # local hugepages_needed=$(($(./vm-mem-requirements ${VM_NAME}) / HUGEPAGES_SIZE))
+  # local hugepages_total=$(($HUGEPAGES_ALLOCATED - $VM_HUGEPAGES_NEED))
+  # hugepages_total=$((${hugepages_total}<0?0:${hugepages_total}))
 
-  log "Restoring hugepages to ${hugepages_total}"
-  sysctl vm.nr_hugepages=${hugepages_total}
+  # log "Restoring hugepages to ${hugepages_total}"
+  # sysctl vm.nr_hugepages=${hugepages_total}
+
+  log "Restoring hugepages to 0"
+  sysctl vm.nr_hugepages=0
 
   # Restore transparent hugepages
   echo always >/sys/kernel/mm/transparent_hugepage/enabled
