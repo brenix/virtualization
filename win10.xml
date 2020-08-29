@@ -60,7 +60,7 @@
   </features>
   <cpu mode='host-passthrough' check='none' migratable='off'>
     <topology sockets='1' dies='1' cores='4' threads='2'/>
-    <cache mode='passthrough'/>
+    <cache level='3' mode='emulate'/>
     <feature policy='disable' name='hypervisor'/>
     <feature policy='require' name='invtsc'/>
     <feature policy='disable' name='monitor'/>
