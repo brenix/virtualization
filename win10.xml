@@ -61,8 +61,8 @@
   <cpu mode='host-passthrough' check='none' migratable='off'>
     <topology sockets='1' dies='1' cores='4' threads='2'/>
     <cache mode='passthrough'/>
+    <feature policy='disable' name='hypervisor'/>
     <feature policy='require' name='invtsc'/>
-    <feature policy='require' name='topoext'/>
     <feature policy='disable' name='monitor'/>
   </cpu>
   <clock offset='localtime'>
@@ -111,14 +111,84 @@
       <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x2'/>
     </controller>
     <controller type='scsi' index='0' model='virtio-scsi'>
-      <driver queues='8' ioeventfd='on' iothread='1'/>
+      <driver queues='2' ioeventfd='on' iothread='1'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
     </controller>
     <controller type='scsi' index='1' model='virtio-scsi'>
-      <driver queues='8' ioeventfd='on' iothread='2'/>
+      <driver queues='2' ioeventfd='on' iothread='2'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
     </controller>
     <controller type='pci' index='0' model='pci-root'/>
+    <controller type='pci' index='1' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='1'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x08' function='0x0'/>
+    </controller>
+    <controller type='pci' index='2' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='2'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x09' function='0x0'/>
+    </controller>
+    <controller type='pci' index='3' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='3'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0a' function='0x0'/>
+    </controller>
+    <controller type='pci' index='4' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='4'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0b' function='0x0'/>
+    </controller>
+    <controller type='pci' index='5' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='5'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0c' function='0x0'/>
+    </controller>
+    <controller type='pci' index='6' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='6'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0d' function='0x0'/>
+    </controller>
+    <controller type='pci' index='7' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='7'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x10' function='0x0'/>
+    </controller>
+    <controller type='pci' index='8' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='8'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x11' function='0x0'/>
+    </controller>
+    <controller type='pci' index='9' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='9'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x12' function='0x0'/>
+    </controller>
+    <controller type='pci' index='10' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='10'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x13' function='0x0'/>
+    </controller>
+    <controller type='pci' index='11' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='11'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x14' function='0x0'/>
+    </controller>
+    <controller type='pci' index='12' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='12'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x15' function='0x0'/>
+    </controller>
+    <controller type='pci' index='13' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='13'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x16' function='0x0'/>
+    </controller>
+    <controller type='pci' index='14' model='pci-bridge'>
+      <model name='pci-bridge'/>
+      <target chassisNr='14'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x17' function='0x0'/>
+    </controller>
     <controller type='sata' index='0'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x1f' function='0x2'/>
     </controller>
@@ -151,6 +221,10 @@
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
     </hostdev>
     <memballoon model='none'/>
+    <rng model='virtio'>
+      <backend model='random'>/dev/urandom</backend>
+      <address type='pci' domain='0x0000' bus='0x0e' slot='0x01' function='0x0'/>
+    </rng>
   </devices>
   <seclabel type='none' model='none'/>
   <qemu:commandline>
@@ -159,7 +233,7 @@
     <qemu:arg value='-device'/>
     <qemu:arg value='hda-micro,audiodev=hda'/>
     <qemu:arg value='-audiodev'/>
-    <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native'/>
+    <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native,out.frequency=44100'/>
     <qemu:arg value='-object'/>
     <qemu:arg value='input-linux,id=mouse1,evdev=/dev/input/by-id/usb-Kingston_HyperX_Pulsefire_Surge-event-if01'/>
     <qemu:arg value='-object'/>
