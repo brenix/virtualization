@@ -45,12 +45,16 @@
       <vpindex state='on'/>
       <runtime state='on'/>
       <synic state='on'/>
-      <stimer state='on'/>
+      <stimer state='on'>
+        <direct state='on'/>
+      </stimer>
       <reset state='on'/>
       <vendor_id state='on' value='windowssucks'/>
       <frequencies state='on'/>
       <reenlightenment state='on'/>
       <tlbflush state='on'/>
+      <ipi state='on'/>
+      <evmcs state='off'/>
     </hyperv>
     <kvm>
       <hidden state='on'/>
@@ -58,15 +62,14 @@
     <vmport state='off'/>
     <ioapic driver='kvm'/>
   </features>
-  <cpu mode='host-passthrough' check='none' migratable='off'>
+  <cpu mode='host-model' check='none'>
     <topology sockets='1' dies='1' cores='4' threads='2'/>
-    <cache level='3' mode='emulate'/>
     <feature policy='disable' name='hypervisor'/>
     <feature policy='require' name='invtsc'/>
     <feature policy='disable' name='monitor'/>
   </cpu>
   <clock offset='localtime'>
-    <timer name='pit' tickpolicy='discard'/>
+    <timer name='pit' tickpolicy='delay'/>
     <timer name='rtc' tickpolicy='catchup' track='guest'/>
     <timer name='tsc' present='yes' mode='native'/>
     <timer name='hpet' present='no'/>
@@ -95,21 +98,6 @@
       <target dev='sdb' bus='scsi'/>
       <address type='drive' controller='1' bus='0' target='0' unit='2'/>
     </disk>
-    <controller type='usb' index='0' model='ich9-ehci1'>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x7'/>
-    </controller>
-    <controller type='usb' index='0' model='ich9-uhci1'>
-      <master startport='0'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x0' multifunction='on'/>
-    </controller>
-    <controller type='usb' index='0' model='ich9-uhci2'>
-      <master startport='2'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x1'/>
-    </controller>
-    <controller type='usb' index='0' model='ich9-uhci3'>
-      <master startport='4'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x06' function='0x2'/>
-    </controller>
     <controller type='scsi' index='0' model='virtio-scsi'>
       <driver queues='2' ioeventfd='on' iothread='1'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
@@ -192,12 +180,9 @@
     <controller type='sata' index='0'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x1f' function='0x2'/>
     </controller>
-    <input type='mouse' bus='virtio'>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x0e' function='0x0'/>
-    </input>
-    <input type='keyboard' bus='virtio'>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x0f' function='0x0'/>
-    </input>
+    <controller type='usb' index='0' model='piix3-uhci'>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x2'/>
+    </controller>
     <input type='mouse' bus='ps2'/>
     <input type='keyboard' bus='ps2'/>
     <hostdev mode='subsystem' type='pci' managed='yes'>
@@ -234,14 +219,6 @@
     <qemu:arg value='hda-micro,audiodev=hda'/>
     <qemu:arg value='-audiodev'/>
     <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native,out.frequency=44100'/>
-    <qemu:arg value='-object'/>
-    <qemu:arg value='input-linux,id=mouse1,evdev=/dev/input/by-id/usb-Kingston_HyperX_Pulsefire_Surge-event-if01'/>
-    <qemu:arg value='-object'/>
-    <qemu:arg value='input-linux,id=mouse2,evdev=/dev/input/by-id/usb-Kingston_HyperX_Pulsefire_Surge-if01-event-kbd'/>
-    <qemu:arg value='-object'/>
-    <qemu:arg value='input-linux,id=mouse3,evdev=/dev/input/by-id/usb-Kingston_HyperX_Pulsefire_Surge-event-mouse'/>
-    <qemu:arg value='-object'/>
-    <qemu:arg value='input-linux,id=kbd1,evdev=/dev/input/by-id/usb-Topre_REALFORCE_87_US-event-kbd,grab_all=on,repeat=on'/>
   </qemu:commandline>
 </domain>
 
