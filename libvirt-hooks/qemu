@@ -120,7 +120,7 @@ unset_hugepages() {
   fi
 
   # Restore transparent hugepages
-  # echo always >/sys/kernel/mm/transparent_hugepage/enabled
+  echo always >/sys/kernel/mm/transparent_hugepage/enabled
 }
 
 # Load hugepages details
@@ -140,7 +140,8 @@ case "$VM_ACTION" in
   echo 1 >/proc/sys/vm/compact_memory
 
   # Set hugepages
-  set_hugepages
+  # set_hugepages
+  echo never >/sys/kernel/mm/transparent_hugepage/enabled
 
   # Create cpusets and isolate cores
   set_cpu
@@ -163,7 +164,7 @@ case "$VM_ACTION" in
   unset_cpu
 
   # Restore hugepages
-  unset_hugepages
+  # unset_hugepages
 
   # Restore stat interval
   echo 1 >/proc/sys/vm/stat_interval
