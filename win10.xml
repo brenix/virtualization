@@ -41,17 +41,17 @@
     <hyperv>
       <relaxed state='on'/>
       <vapic state='on'/>
-      <spinlocks state='on' retries='8192'/>
+      <spinlocks state='on' retries='8191'/>
       <vpindex state='on'/>
       <runtime state='on'/>
       <synic state='on'/>
       <stimer state='on'>
         <direct state='on'/>
       </stimer>
-      <reset state='on'/>
+      <reset state='off'/>
       <vendor_id state='on' value='windowssucks'/>
       <frequencies state='on'/>
-      <reenlightenment state='on'/>
+      <reenlightenment state='off'/>
       <tlbflush state='on'/>
       <ipi state='on'/>
       <evmcs state='off'/>
@@ -64,15 +64,16 @@
   </features>
   <cpu mode='host-model' check='none'>
     <topology sockets='1' dies='1' cores='4' threads='2'/>
-    <feature policy='disable' name='hypervisor'/>
     <feature policy='require' name='invtsc'/>
+    <feature policy='require' name='topoext'/>
+    <feature policy='disable' name='hypervisor'/>
     <feature policy='disable' name='monitor'/>
   </cpu>
   <clock offset='localtime'>
-    <timer name='pit' tickpolicy='delay'/>
-    <timer name='rtc' tickpolicy='catchup' track='guest'/>
-    <timer name='tsc' present='yes' mode='native'/>
-    <timer name='hpet' present='no'/>
+    <timer name='pit' tickpolicy='discard'/>
+    <timer name='rtc' tickpolicy='catchup'/>
+    <timer name='tsc' present='yes' tickpolicy='discard' mode='native'/>
+    <timer name='hpet' present='no' tickpolicy='discard'/>
     <timer name='hypervclock' present='yes'/>
     <timer name='kvmclock' present='no'/>
   </clock>
