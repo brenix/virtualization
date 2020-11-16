@@ -93,6 +93,11 @@ set_irq_affinity() {
   done
 }
 
+set_sched_fifo() {
+  log "Setting real-time scheduling to FIFO for QEMU process and threads"
+  chrt -f -a -p $(pidof qemu-system-x86_64)
+}
+
 # Configure hugepages
 set_hugepages() {
   cd $(dirname "$0")
@@ -147,17 +152,20 @@ case "$VM_ACTION" in
   set_cpu
 
   # Force P-states to P0
-  echo performance | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+  #echo performance | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
   # Increase stat interval
   echo 300 >/proc/sys/vm/stat_interval
 
   # Disable watchdog
-  echo 0 >/proc/sys/kernel/watchdog
+  #echo 0 >/proc/sys/kernel/watchdog
   ;;
 "started")
   # Set IRQ affinity for VFIO interrupts
-  set_irq_affinity
+  #set_irq_affinity
+
+  # Set FIFO scheduler on qemu process
+  set_sched_fifo
   ;;
 "release")
   # Restore cpusets
@@ -170,6 +178,6 @@ case "$VM_ACTION" in
   echo 1 >/proc/sys/vm/stat_interval
 
   # Restore watchdog
-  echo 1 >/proc/sys/kernel/watchdog
+  # echo 1 >/proc/sys/kernel/watchdog
   ;;
 esac
