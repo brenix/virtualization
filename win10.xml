@@ -34,6 +34,7 @@
     <type arch='x86_64' machine='pc-i440fx-5.1'>hvm</type>
     <loader readonly='yes' type='pflash'>/usr/share/edk2-ovmf/x64/OVMF.fd</loader>
     <nvram template='/usr/share/edk2-ovmf/x64/OVMF_VARS.fd'>/vm/ovmf/win10.fd</nvram>
+    <bootmenu enable='no'/>
   </os>
   <features>
     <acpi/>
@@ -98,6 +99,13 @@
       <source dev='/dev/data/windata'/>
       <target dev='sdb' bus='scsi'/>
       <address type='drive' controller='1' bus='0' target='0' unit='2'/>
+    </disk>
+    <disk type='file' device='cdrom'>
+      <driver name='qemu' type='raw'/>
+      <source file='/usr/share/virtio/virtio-win.iso'/>
+      <target dev='sdc' bus='sata'/>
+      <readonly/>
+      <address type='drive' controller='0' bus='0' target='0' unit='2'/>
     </disk>
     <controller type='scsi' index='0' model='virtio-scsi'>
       <driver queues='2' ioeventfd='on' iothread='1'/>
