@@ -31,7 +31,7 @@
     <partition>/machine</partition>
   </resource>
   <os>
-    <type arch='x86_64' machine='pc-i440fx-5.1'>hvm</type>
+    <type arch='x86_64' machine='pc-i440fx-5.2'>hvm</type>
     <loader readonly='yes' type='pflash'>/usr/share/edk2-ovmf/x64/OVMF.fd</loader>
     <nvram template='/usr/share/edk2-ovmf/x64/OVMF_VARS.fd'>/vm/ovmf/win10.fd</nvram>
     <bootmenu enable='no'/>
@@ -52,7 +52,7 @@
       <reset state='off'/>
       <vendor_id state='on' value='windowssucks'/>
       <frequencies state='on'/>
-      <reenlightenment state='off'/>
+      <reenlightenment state='on'/>
       <tlbflush state='on'/>
       <ipi state='on'/>
       <evmcs state='off'/>
@@ -63,11 +63,11 @@
     <vmport state='off'/>
     <ioapic driver='kvm'/>
   </features>
-  <cpu mode='host-model' check='none'>
+  <cpu mode='host-passthrough' check='none' migratable='on'>
     <topology sockets='1' dies='1' cores='4' threads='2'/>
+    <cache mode='passthrough'/>
     <feature policy='require' name='invtsc'/>
     <feature policy='require' name='topoext'/>
-    <feature policy='disable' name='hypervisor'/>
     <feature policy='disable' name='monitor'/>
   </cpu>
   <clock offset='localtime'>
@@ -103,9 +103,9 @@
     <disk type='file' device='cdrom'>
       <driver name='qemu' type='raw'/>
       <source file='/usr/share/virtio/virtio-win.iso'/>
-      <target dev='sdc' bus='sata'/>
+      <target dev='sdd' bus='scsi'/>
       <readonly/>
-      <address type='drive' controller='0' bus='0' target='0' unit='2'/>
+      <address type='drive' controller='0' bus='0' target='0' unit='3'/>
     </disk>
     <controller type='scsi' index='0' model='virtio-scsi'>
       <driver queues='2' ioeventfd='on' iothread='1'/>
