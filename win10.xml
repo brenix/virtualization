@@ -12,21 +12,7 @@
     <hugepages/>
     <locked/>
   </memoryBacking>
-  <vcpu placement='static' cpuset='0-11'>8</vcpu>
-  <iothreads>2</iothreads>
-  <cputune>
-    <vcpupin vcpu='0' cpuset='2'/>
-    <vcpupin vcpu='1' cpuset='8'/>
-    <vcpupin vcpu='2' cpuset='3'/>
-    <vcpupin vcpu='3' cpuset='9'/>
-    <vcpupin vcpu='4' cpuset='4'/>
-    <vcpupin vcpu='5' cpuset='10'/>
-    <vcpupin vcpu='6' cpuset='5'/>
-    <vcpupin vcpu='7' cpuset='11'/>
-    <emulatorpin cpuset='0-1,6-7'/>
-    <iothreadpin iothread='1' cpuset='0,6'/>
-    <iothreadpin iothread='2' cpuset='1,7'/>
-  </cputune>
+  <vcpu placement='static' cpuset='0-11'>12</vcpu>
   <resource>
     <partition>/machine</partition>
   </resource>
@@ -62,7 +48,7 @@
     <ioapic driver='kvm'/>
   </features>
   <cpu mode='host-passthrough' check='none' migratable='on'>
-    <topology sockets='1' dies='1' cores='4' threads='2'/>
+    <topology sockets='1' dies='1' cores='6' threads='2'/>
     <cache mode='passthrough'/>
     <feature policy='require' name='invtsc'/>
     <feature policy='disable' name='monitor'/>
@@ -105,11 +91,11 @@
       <address type='drive' controller='0' bus='0' target='0' unit='3'/>
     </disk>
     <controller type='scsi' index='0' model='virtio-scsi'>
-      <driver queues='2' ioeventfd='on' iothread='1'/>
+      <driver queues='2' ioeventfd='on'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
     </controller>
     <controller type='scsi' index='1' model='virtio-scsi'>
-      <driver queues='2' ioeventfd='on' iothread='2'/>
+      <driver queues='2' ioeventfd='on'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
     </controller>
     <controller type='pci' index='0' model='pcie-root'/>
@@ -215,13 +201,6 @@
       </source>
       <rom bar='off'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
-    </hostdev>
-    <hostdev mode='subsystem' type='usb' managed='yes'>
-      <source>
-        <vendor id='0x0951'/>
-        <product id='0x16c4'/>
-      </source>
-      <address type='usb' bus='0' port='1'/>
     </hostdev>
     <memballoon model='none'/>
     <rng model='virtio'>
