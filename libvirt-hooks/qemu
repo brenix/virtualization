@@ -149,10 +149,10 @@ case "$VM_ACTION" in
   echo never >/sys/kernel/mm/transparent_hugepage/enabled
 
   # Create cpusets and isolate cores
-  # set_cpu
+  set_cpu
 
   # Force P-states to P0
-  #echo performance | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+  echo performance | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
   # Increase stat interval
   echo 300 >/proc/sys/vm/stat_interval
@@ -162,7 +162,7 @@ case "$VM_ACTION" in
   ;;
 "started")
   # Set IRQ affinity for VFIO interrupts
-  #set_irq_affinity
+  set_irq_affinity
 
   # Set FIFO scheduler on qemu process
   # set_sched_fifo

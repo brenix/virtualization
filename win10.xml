@@ -12,7 +12,21 @@
     <hugepages/>
     <locked/>
   </memoryBacking>
-  <vcpu placement='static' cpuset='0-11'>12</vcpu>
+  <vcpu placement='static' cpuset='0-11'>8</vcpu>
+  <iothreads>2</iothreads>
+  <cputune>
+    <vcpupin vcpu='0' cpuset='2'/>
+    <vcpupin vcpu='1' cpuset='8'/>
+    <vcpupin vcpu='2' cpuset='3'/>
+    <vcpupin vcpu='3' cpuset='9'/>
+    <vcpupin vcpu='4' cpuset='4'/>
+    <vcpupin vcpu='5' cpuset='10'/>
+    <vcpupin vcpu='6' cpuset='5'/>
+    <vcpupin vcpu='7' cpuset='11'/>
+    <emulatorpin cpuset='0-1,6-7'/>
+    <iothreadpin iothread='1' cpuset='0,6'/>
+    <iothreadpin iothread='2' cpuset='1,7'/>
+  </cputune>
   <resource>
     <partition>/machine</partition>
   </resource>
@@ -48,18 +62,18 @@
     <ioapic driver='kvm'/>
   </features>
   <cpu mode='host-passthrough' check='none' migratable='on'>
-    <topology sockets='1' dies='1' cores='6' threads='2'/>
+    <topology sockets='1' dies='1' cores='4' threads='2'/>
     <cache mode='passthrough'/>
     <feature policy='require' name='invtsc'/>
+    <feature policy='require' name='topoext'/>
     <feature policy='disable' name='monitor'/>
   </cpu>
   <clock offset='localtime'>
-    <timer name='pit' tickpolicy='discard'/>
     <timer name='rtc' tickpolicy='catchup'/>
-    <timer name='tsc' present='yes' tickpolicy='discard' mode='native'/>
-    <timer name='hpet' present='no' tickpolicy='discard'/>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='hpet' present='no'/>
     <timer name='hypervclock' present='yes'/>
-    <timer name='kvmclock' present='no'/>
+    <timer name='tsc' present='yes' mode='native'/>
   </clock>
   <on_poweroff>destroy</on_poweroff>
   <on_reboot>restart</on_reboot>
@@ -91,11 +105,11 @@
       <address type='drive' controller='0' bus='0' target='0' unit='3'/>
     </disk>
     <controller type='scsi' index='0' model='virtio-scsi'>
-      <driver queues='2' ioeventfd='on'/>
+      <driver queues='2' ioeventfd='on' iothread='1'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x05' function='0x0'/>
     </controller>
     <controller type='scsi' index='1' model='virtio-scsi'>
-      <driver queues='2' ioeventfd='on'/>
+      <driver queues='2' ioeventfd='on' iothread='2'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
     </controller>
     <controller type='pci' index='0' model='pcie-root'/>
@@ -211,7 +225,7 @@
   <seclabel type='none' model='none'/>
   <qemu:commandline>
     <qemu:arg value='-audiodev'/>
-    <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native,out.frequency=44100,timer-period=1000'/>
+    <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native,out.frequency=48000,timer-period=4000,out.buffer-length=10000'/>
     <qemu:arg value='-device'/>
     <qemu:arg value='ich9-intel-hda,bus=pcie.0,addr=0x1b'/>
     <qemu:arg value='-device'/>
