@@ -37,65 +37,18 @@ listcpus() {
   printf '%s\n' "${cpus[@]}"
 }
 
-# Configure cpusets and isolate cores
+# Configure allowed CPUs
 set_cpu() {
-  log "Creating system cpuset for host cores ${HOST_CORES}"
-  cset set -c ${HOST_CORES} -s system
-
-  log "Moving all threads (including kernel) to host cpuset"
-  cset proc -m -f root -t system --force
-  cset proc -k -f root -t system --force
-
-  log "Setting workqueue affinities"
-  echo ${HOST_CORES_MASK} >/sys/bus/workqueue/devices/writeback/cpumask
-  echo ${HOST_CORES_MASK} >/sys/devices/virtual/workqueue/cpumask
-  echo 0 > /sys/bus/workqueue/devices/writeback/numa
-
-  # Manually move any processes that refused to move from cset proc
-  # Realistically the only one affected by this is kthreadd
-  cset proc --list --set root | awk 'NR==4,NR==-1 {print $2}' | while read line; do
-    taskset -pc ${HOST_CORES} $line
-  done
-
-  # Take all VM CPUs offline and bring back online after.
-  # Reduces jitter due to timers
-  # https://www.kernel.org/doc/Documentation/kernel-per-CPU-kthreads.txt
-  log "Taking VM CPUs ${VIRT_CORES} offline and back online"
-  cpus=$(listcpus ${VIRT_CORES})
-  for n in ${cpus}; do
-    echo 0 >/sys/devices/system/cpu/cpu${n}/online
-  done
-  sleep 1
-  for n in ${cpus}; do
-    echo 1 >/sys/devices/system/cpu/cpu${n}/online
-  done
-
-  # If the libvirt slice exists from a prior VM boot,
-  # delete it as it will need to be recreated after CPU hotplug
-  cset set -d machine.slice
+  systemctl set-property --runtime -- user.slice AllowedCPUs=${HOST_CORES}
+  systemctl set-property --runtime -- system.slice AllowedCPUs=${HOST_CORES}
+  systemctl set-property --runtime -- init.scope AllowedCPUs=${HOST_CORES}
 }
 
-# Delete system cpuset and undo isolation
+# Restore allowed CPUs
 unset_cpu() {
-  log "Releasing CPUs ${VIRT_CORES} from VM: ${VM_NAME}"
-  cset set -d system
-  echo ${TOTAL_CORES_MASK} >/sys/bus/workqueue/devices/writeback/cpumask
-  echo ${TOTAL_CORES_MASK} >/sys/devices/virtual/workqueue/cpumask
-  echo 1 > /sys/bus/workqueue/devices/writeback/numa
-}
-
-# Configure the VFIO interrupts to run on the guest cores
-set_irq_affinity() {
-  local irqs=($(grep vfio /proc/interrupts | cut -d ":" -f1))
-  for i in ${irqs[@]}; do
-    log "Setting affinity for IRQ ${i}"
-    echo ${VIRT_CORES_MASK} >/proc/irq/${i}/smp_affinity
-  done
-}
-
-set_sched_fifo() {
-  log "Setting real-time scheduling to FIFO for QEMU process and threads"
-  chrt -f -a -p $(pidof qemu-system-x86_64)
+  systemctl set-property --runtime -- user.slice AllowedCPUs=${TOTAL_CORES}
+  systemctl set-property --runtime -- system.slice AllowedCPUs=${TOTAL_CORES}
+  systemctl set-property --runtime -- init.scope AllowedCPUs=${TOTAL_CORES}
 }
 
 # Configure hugepages
@@ -146,6 +99,8 @@ case "$VM_ACTION" in
 
   # Set hugepages
   # set_hugepages
+
+  # Disable transparent hugepages
   echo never >/sys/kernel/mm/transparent_hugepage/enabled
 
   # Create cpusets and isolate cores
@@ -156,16 +111,8 @@ case "$VM_ACTION" in
 
   # Increase stat interval
   echo 300 >/proc/sys/vm/stat_interval
-
-  # Disable watchdog
-  #echo 0 >/proc/sys/kernel/watchdog
   ;;
 "started")
-  # Set IRQ affinity for VFIO interrupts
-  set_irq_affinity
-
-  # Set FIFO scheduler on qemu process
-  # set_sched_fifo
   ;;
 "release")
   # Restore cpusets
@@ -176,8 +123,5 @@ case "$VM_ACTION" in
 
   # Restore stat interval
   echo 1 >/proc/sys/vm/stat_interval
-
-  # Restore watchdog
-  # echo 1 >/proc/sys/kernel/watchdog
   ;;
 esac
