@@ -66,11 +66,12 @@
     <feature policy='disable' name='monitor'/>
   </cpu>
   <clock offset='localtime'>
+    <timer name='pit' tickpolicy='discard'/>
     <timer name='rtc' tickpolicy='catchup'/>
-    <timer name='pit' tickpolicy='delay'/>
-    <timer name='hpet' present='no'/>
+    <timer name='tsc' present='yes' tickpolicy='discard' mode='native'/>
+    <timer name='hpet' present='no' tickpolicy='discard'/>
     <timer name='hypervclock' present='yes'/>
-    <timer name='tsc' present='yes' mode='native'/>
+    <timer name='kvmclock' present='no'/>
   </clock>
   <on_poweroff>destroy</on_poweroff>
   <on_reboot>restart</on_reboot>
@@ -222,7 +223,7 @@
   <seclabel type='none' model='none'/>
   <qemu:commandline>
     <qemu:arg value='-audiodev'/>
-    <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native,out.frequency=48000,out.buffer-length=10000'/>
+    <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native,out.frequency=44100,out.buffer-length=10000'/>
     <qemu:arg value='-device'/>
     <qemu:arg value='ich9-intel-hda,bus=pcie.0,addr=0x1b'/>
     <qemu:arg value='-device'/>
