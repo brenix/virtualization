@@ -49,7 +49,7 @@
       <stimer state='on'>
         <direct state='on'/>
       </stimer>
-      <reset state='off'/>
+      <reset state='on'/>
       <frequencies state='on'/>
       <reenlightenment state='on'/>
       <tlbflush state='on'/>
@@ -58,20 +58,18 @@
     </hyperv>
     <vmport state='off'/>
   </features>
-  <cpu mode='host-passthrough' check='none' migratable='on'>
+  <cpu mode='host-model' check='none'>
     <topology sockets='1' dies='1' cores='4' threads='2'/>
-    <cache mode='passthrough'/>
     <feature policy='require' name='invtsc'/>
     <feature policy='require' name='topoext'/>
     <feature policy='disable' name='monitor'/>
   </cpu>
   <clock offset='localtime'>
-    <timer name='pit' tickpolicy='discard'/>
     <timer name='rtc' tickpolicy='catchup'/>
-    <timer name='tsc' present='yes' tickpolicy='discard' mode='native'/>
-    <timer name='hpet' present='no' tickpolicy='discard'/>
+    <timer name='pit' tickpolicy='delay'/>
+    <timer name='hpet' present='no'/>
     <timer name='hypervclock' present='yes'/>
-    <timer name='kvmclock' present='no'/>
+    <timer name='tsc' present='yes' mode='native'/>
   </clock>
   <on_poweroff>destroy</on_poweroff>
   <on_reboot>restart</on_reboot>
@@ -83,14 +81,14 @@
   <devices>
     <emulator>/usr/sbin/qemu-system-x86_64</emulator>
     <disk type='block' device='lun'>
-      <driver name='qemu' type='raw' cache='none' io='native' discard='unmap'/>
+      <driver name='qemu' type='raw' cache='none' io='io_uring' discard='unmap'/>
       <source dev='/dev/disk/by-id/ata-Corsair_Force_GT_122579040000150203D8'/>
       <target dev='sda' bus='scsi'/>
       <boot order='1'/>
       <address type='drive' controller='0' bus='0' target='0' unit='1'/>
     </disk>
     <disk type='block' device='disk'>
-      <driver name='qemu' type='raw' cache='none' io='native'/>
+      <driver name='qemu' type='raw' cache='none' io='io_uring'/>
       <source dev='/dev/data/windata'/>
       <target dev='sdb' bus='scsi'/>
       <address type='drive' controller='1' bus='0' target='0' unit='2'/>
