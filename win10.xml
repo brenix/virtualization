@@ -81,14 +81,14 @@
   <devices>
     <emulator>/usr/sbin/qemu-system-x86_64</emulator>
     <disk type='block' device='lun'>
-      <driver name='qemu' type='raw' cache='none' io='io_uring' discard='unmap'/>
+      <driver name='qemu' type='raw' cache='none' io='native' discard='unmap'/>
       <source dev='/dev/disk/by-id/ata-Corsair_Force_GT_122579040000150203D8'/>
       <target dev='sda' bus='scsi'/>
       <boot order='1'/>
       <address type='drive' controller='0' bus='0' target='0' unit='1'/>
     </disk>
     <disk type='block' device='disk'>
-      <driver name='qemu' type='raw' cache='none' io='io_uring'/>
+      <driver name='qemu' type='raw' cache='none' io='native'/>
       <source dev='/dev/data/windata'/>
       <target dev='sdb' bus='scsi'/>
       <address type='drive' controller='1' bus='0' target='0' unit='2'/>
@@ -182,12 +182,23 @@
     <controller type='pci' index='15' model='pcie-root-port'>
       <model name='pcie-root-port'/>
       <target chassis='15' port='0x8'/>
-      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x0' multifunction='on'/>
+    </controller>
+    <controller type='pci' index='16' model='pcie-root-port'>
+      <model name='pcie-root-port'/>
+      <target chassis='16' port='0x9'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x01' function='0x1'/>
     </controller>
     <controller type='sata' index='0'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x1f' function='0x2'/>
     </controller>
     <controller type='usb' index='0' model='none'/>
+    <input type='mouse' bus='virtio'>
+      <address type='pci' domain='0x0000' bus='0x0f' slot='0x00' function='0x0'/>
+    </input>
+    <input type='keyboard' bus='virtio'>
+      <address type='pci' domain='0x0000' bus='0x10' slot='0x00' function='0x0'/>
+    </input>
     <input type='mouse' bus='ps2'/>
     <input type='keyboard' bus='ps2'/>
     <hostdev mode='subsystem' type='pci' managed='yes'>
@@ -219,11 +230,15 @@
   <seclabel type='none' model='none'/>
   <qemu:commandline>
     <qemu:arg value='-audiodev'/>
-    <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native,out.frequency=44100,out.buffer-length=10000'/>
+    <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native,out.frequency=44100,out.buffer-length=10000,timer-period=512,out.format=s16'/>
     <qemu:arg value='-device'/>
     <qemu:arg value='ich9-intel-hda,bus=pcie.0,addr=0x1b'/>
     <qemu:arg value='-device'/>
     <qemu:arg value='hda-micro,audiodev=hda'/>
+    <qemu:arg value='-object'/>
+    <qemu:arg value='input-linux,id=mouse1,evdev=/dev/input/by-id/usb-Logitech_USB_Receiver-event-mouse'/>
+    <qemu:arg value='-object'/>
+    <qemu:arg value='input-linux,id=kbd1,evdev=/dev/input/by-id/usb-Topre_REALFORCE_87_US-event-kbd,grab_all=on,repeat=on'/>
   </qemu:commandline>
 </domain>
 
