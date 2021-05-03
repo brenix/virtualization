@@ -31,7 +31,7 @@
     <partition>/machine</partition>
   </resource>
   <os>
-    <type arch='x86_64' machine='pc-q35-5.2'>hvm</type>
+    <type arch='x86_64' machine='pc-q35-6.0'>hvm</type>
     <loader readonly='yes' type='pflash'>/usr/share/edk2-ovmf/x64/OVMF.fd</loader>
     <nvram template='/usr/share/edk2-ovmf/x64/OVMF_VARS.fd'>/vm/ovmf/win10.fd</nvram>
     <bootmenu enable='no'/>
@@ -58,8 +58,9 @@
     </hyperv>
     <vmport state='off'/>
   </features>
-  <cpu mode='host-model' check='none'>
+  <cpu mode='host-passthrough' check='none' migratable='on'>
     <topology sockets='1' dies='1' cores='4' threads='2'/>
+    <cache mode='passthrough'/>
     <feature policy='require' name='invtsc'/>
     <feature policy='require' name='topoext'/>
     <feature policy='disable' name='monitor'/>
