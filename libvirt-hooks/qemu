@@ -7,6 +7,9 @@ HOST_CORES='0-1,6-7'             # Cores to reserve for host
 HOST_CORES_MASK='C3'             # CPU mask for host cores
 VIRT_CORES='2-5,8-11'            # Cores to reserve for VM
 VIRT_CORES_MASK='F3C'            # CPU mask for VM cores
+DISPLAY_NUMBER='2'               # Display number according to ddcutil detect
+DISPLAY_INPUT_VM='0x0f'          # DisplayPort according to ddcutil detect
+DISPLAY_INPUT_HOST='0x03'        # DVI according to ddcutil detect
 
 # Log a message in dmesg
 log() {
@@ -51,6 +54,14 @@ unset_cpu() {
   systemctl set-property --runtime -- init.scope AllowedCPUs=${TOTAL_CORES}
 }
 
+# Set display input source
+set_display_input() {
+  local display="$1"
+  local input="$2"
+
+  sudo ddcutil -d ${display} setvcp 60 ${input}
+}
+
 # Configure hugepages
 set_hugepages() {
   cd $(dirname "$0")
@@ -92,6 +103,9 @@ VM_ACTION=$2
 
 case "$VM_ACTION" in
 "prepare")
+  # Switch display input
+  set_display_input ${DISPLAY_NUMBER} ${DISPLAY_INPUT_VM}
+
   # Memory preparation
   sync
   echo 3 >/proc/sys/vm/drop_caches
@@ -115,6 +129,9 @@ case "$VM_ACTION" in
 "started")
   ;;
 "release")
+  # Switch display input
+  set_display_input ${DISPLAY_NUMBER} ${DISPLAY_INPUT_HOST}
+
   # Restore cpusets
   unset_cpu
 
