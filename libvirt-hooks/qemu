@@ -111,6 +111,11 @@ case "$VM_ACTION" in
   echo 3 >/proc/sys/vm/drop_caches
   echo 1 >/proc/sys/vm/compact_memory
 
+  # Set IO scheduler
+  echo none >/sys/block/sda/queue/scheduler
+  echo none >/sys/block/sdc/queue/scheduler
+  echo none >/sys/block/sdd/queue/scheduler
+
   # Set hugepages
   # set_hugepages
 

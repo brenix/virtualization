@@ -232,7 +232,7 @@
   <seclabel type='none' model='none'/>
   <qemu:commandline>
     <qemu:arg value='-audiodev'/>
-    <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native,out.frequency=48000,out.buffer-length=10000,timer-period=512'/>
+    <qemu:arg value='pa,id=hda,server=unix:/run/user/1000/pulse/native,out.frequency=44100,out.buffer-length=10000,timer-period=512'/>
     <qemu:arg value='-device'/>
     <qemu:arg value='ich9-intel-hda,bus=pcie.0,addr=0x1b'/>
     <qemu:arg value='-device'/>
