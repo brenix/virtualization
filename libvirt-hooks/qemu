@@ -1,12 +1,8 @@
 #!/usr/bin/env bash
 
-# Core Configuration - Use https://bitsum.com/tools/cpu-affinity-calculator/ to calculate masks
 TOTAL_CORES='0-11'               # All CPUs
-TOTAL_CORES_MASK='FFF'           # All CPUs Mask
 HOST_CORES='0-1,6-7'             # Cores to reserve for host
-HOST_CORES_MASK='C3'             # CPU mask for host cores
 VIRT_CORES='2-5,8-11'            # Cores to reserve for VM
-VIRT_CORES_MASK='F3C'            # CPU mask for VM cores
 DISPLAY_NUMBER='2'               # Display number according to ddcutil detect
 DISPLAY_INPUT_VM='0x0f'          # DisplayPort according to ddcutil detect
 DISPLAY_INPUT_HOST='0x03'        # DVI according to ddcutil detect
@@ -110,11 +106,6 @@ case "$VM_ACTION" in
   sync
   echo 3 >/proc/sys/vm/drop_caches
   echo 1 >/proc/sys/vm/compact_memory
-
-  # Set IO scheduler
-  echo none >/sys/block/sda/queue/scheduler
-  echo none >/sys/block/sdc/queue/scheduler
-  echo none >/sys/block/sdd/queue/scheduler
 
   # Set hugepages
   # set_hugepages
