@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
 TOTAL_CORES='0-11'               # All CPUs
-HOST_CORES='0-1,6-7'             # Cores to reserve for host
-VIRT_CORES='2-5,8-11'            # Cores to reserve for VM
+HOST_CORES='0,6'                 # Cores to reserve for host
+VIRT_CORES='1-5,7-11'            # Cores to reserve for VM
 DISPLAY_NUMBER='2'               # Display number according to ddcutil detect
 DISPLAY_INPUT_VM='0x0f'          # DisplayPort according to ddcutil detect
 DISPLAY_INPUT_HOST='0x03'        # DVI according to ddcutil detect
@@ -117,12 +117,23 @@ case "$VM_ACTION" in
   set_cpu
 
   # Force P-states to P0
-  echo performance | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
+  # echo performance | tee /sys/devices/system/cpu/cpu*/cpufreq/scaling_governor
 
   # Increase stat interval
   echo 300 >/proc/sys/vm/stat_interval
+
+  # Tune the scheduler to allow full utilization
+  # echo -1 > /proc/sys/kernel/sched_rt_runtime_us
   ;;
 "started")
+  # Set priority level and execution policy for qemu process
+  chrt -a -f -p 99 $(pidof qemu-system-x86_64)
+  chrt -p $(pidof qemu-system-x86_64)
+
+  # Set IRQ affinities
+  for i in $(sed -n -e 's/ \([0-9]\+\):.*/\1/p' /proc/interrupts); do
+    echo '0,6' > /proc/irq/$i/smp_affinity_list
+  done &>/dev/null
   ;;
 "release")
   # Switch display input
@@ -136,5 +147,8 @@ case "$VM_ACTION" in
 
   # Restore stat interval
   echo 1 >/proc/sys/vm/stat_interval
+
+  # Restore scheduler
+  # echo 950000 > /proc/sys/kernel/sched_rt_runtime_us
   ;;
 esac
