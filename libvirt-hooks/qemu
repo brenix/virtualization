@@ -123,7 +123,7 @@ case "$VM_ACTION" in
   echo 300 >/proc/sys/vm/stat_interval
 
   # Tune the scheduler to allow full utilization
-  # echo -1 > /proc/sys/kernel/sched_rt_runtime_us
+  echo -1 > /proc/sys/kernel/sched_rt_runtime_us
   ;;
 "started")
   # Set priority level and execution policy for qemu process
@@ -149,6 +149,6 @@ case "$VM_ACTION" in
   echo 1 >/proc/sys/vm/stat_interval
 
   # Restore scheduler
-  # echo 950000 > /proc/sys/kernel/sched_rt_runtime_us
+  echo 950000 > /proc/sys/kernel/sched_rt_runtime_us
   ;;
 esac
